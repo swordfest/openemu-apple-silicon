@@ -37,7 +37,7 @@ modern-toolchain strictness issue or a stale build setting.
 | App | native arm64 |
 | Cores built arm64 | 26 |
 | Systems where a test ROM loads and runs | 17 |
-| Systems confirmed *visually* playable | 1 (N64) |
+| Systems confirmed *visually* playable | 4 (N64, SNES, Game Boy, GBA) |
 
 17 systems load and run a test ROM, including **Nintendo DS**. Only N64 has been
 confirmed *visually* playable; for the rest, "runs" means the core loads and
@@ -211,8 +211,14 @@ noted.
 
 ### Confirmed playable
 
-**N64** (Super Mario 64, real cartridge dump) — played with a controller; video
-and input confirmed.
+Games render and play, confirmed by eye on the machine listed at the top.
+
+| System | Core | Verified with |
+|---|---|---|
+| N64 | Mupen64Plus | Super Mario 64 — video and controller input |
+| SNES | BSNES | commercial ROMs |
+| Game Boy | Gambatte | commercial ROMs |
+| Game Boy Advance | mGBA | commercial ROMs |
 
 ### Runs, picture not visually confirmed
 
@@ -221,10 +227,7 @@ The core loads and executes a test ROM; nobody has confirmed a visible image.
 | System | Core | Test ROM |
 |---|---|---|
 | NES | Nestopia | user's library |
-| GBA | mGBA | user's library |
 | PS1 | Mednafen | user's library (BIOS present) |
-| SNES | BSNES | `blt` (homebrew) |
-| Game Boy | Gambatte | `libbet` (homebrew) |
 | Game Boy Color | Gambatte | `ucity` (homebrew) |
 | Master System | GenesisPlus | `2048grz` (homebrew) |
 | Game Gear | GenesisPlus | `HelloWorld` (homebrew) |
