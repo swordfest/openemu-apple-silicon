@@ -36,15 +36,13 @@ modern-toolchain strictness issue or a stale build setting.
 |---|---|
 | App | native arm64 |
 | Cores built arm64 | 26 |
-| Systems verified running a game | ~17 |
+| Systems where a test ROM loads and runs | 17 |
+| Systems confirmed *visually* playable | 1 (N64) |
 
-Verified playing: N64, NES, GBA, PS1, SNES, Game Boy, Game Boy Color, Master
-System, Game Gear, Genesis, Atari 2600, Atari 7800, Atari Lynx, Vectrex,
-ColecoVision, MSX, **Nintendo DS**.
-
-Not verified: **PSP** (builds and initialises, but no legitimate test image was
-available — see Status). **Dreamcast** builds but OpenEmu's importer will not
-accept a disc (see Status).
+17 systems load and run a test ROM, including **Nintendo DS**. Only N64 has been
+confirmed *visually* playable; for the rest, "runs" means the core loads and
+executes — see **Known issues** for exactly what was and was not verified, and
+for the systems that stay black, refuse to import, or have no core yet.
 
 ---
 
@@ -200,22 +198,106 @@ should not receive bug reports for them. Keep the naming, keep `INSTALL.txt` and
   (99 USD/year) and notarisation.
 - **Never ship ROMs or BIOS files.**
 
-## Status / known gaps
+## Known issues
 
-- **PSP** — builds, installs, initialises, and reaches its frame loop, but has
-  not been verified running an actual game. OpenEmu's PSP importer only accepts
-  a real UMD image (`.cso`, or `"PSP GAME"` at offset `0x8008`); no legitimate
-  test image was on hand. Unverified, not claimed working.
-- **Dreamcast** — reicast builds arm64 and the Dreamcast system plugin loads, but
-  OpenEmu never imports a `.gdi`. The disc parses fine and the system is enabled;
-  the importer path was traced without finding the cause. Likely the same
-  incomplete integration as other never-shipped systems.
-- **Jaguar, Pokémon Mini, Watara Supervision, 3DO** — cores and system plugins
-  build, but the importer will not take their files.
-- **GameCube / Wii (Dolphin)** — not attempted. Dolphin is not a submodule of the
-  OpenEmu repo; it lives at https://github.com/OpenEmu/dolphin.
-- Auto-update (Sparkle) will replace a local build with the official Intel one.
-  Don't use "Check for Updates" on a custom build.
+### How "verified" was measured — read this first
+
+Unless stated otherwise, a system marked working was checked by confirming that
+`OpenEmuHelperApp` **starts, stays alive, and burns CPU** on the expected core,
+built for arm64. That proves the core loads and executes. It does **not** prove a
+picture appears — PSP passed exactly that check and still renders a black screen.
+Read the list below as "the core runs", not "the game is playable", except where
+noted.
+
+### Confirmed playable
+
+**N64** (Super Mario 64, real cartridge dump) — played with a controller; video
+and input confirmed.
+
+### Runs, picture not visually confirmed
+
+The core loads and executes a test ROM; nobody has confirmed a visible image.
+
+| System | Core | Test ROM |
+|---|---|---|
+| NES | Nestopia | user's library |
+| GBA | mGBA | user's library |
+| PS1 | Mednafen | user's library (BIOS present) |
+| SNES | BSNES | `blt` (homebrew) |
+| Game Boy | Gambatte | `libbet` (homebrew) |
+| Game Boy Color | Gambatte | `ucity` (homebrew) |
+| Master System | GenesisPlus | `2048grz` (homebrew) |
+| Game Gear | GenesisPlus | `HelloWorld` (homebrew) |
+| Genesis | GenesisPlus | `Klax` |
+| Atari 2600 | Stella | `anguna` (homebrew) |
+| Atari 7800 | ProSystem | `bforest` demo |
+| Atari Lynx | Mednafen | `lynxvirus` (homebrew, BIOS present) |
+| Vectrex | VecXGL | `revector` (homebrew) |
+| ColecoVision | blueMSX | `airbattle` (homebrew) |
+| MSX | blueMSX | `transball` (homebrew) |
+| Nintendo DS | DeSmuME | GBARunner2 (homebrew) |
+
+### Loads, but black screen
+
+- **PSP** (PPSSPP) — imports, the core initialises and reaches
+  `-[PPSSPPGameCore executeFrame]`, but no video appears. **It has never been
+  tested with a real game**: OpenEmu's PSP importer only accepts a genuine UMD
+  image (`.cso`, or `"PSP GAME"` at offset `0x8008`), and no legitimate PSP disc
+  was available. Every test image was improvised from memory-stick homebrew,
+  which is not a bootable UMD, so the black screen is more likely the image than
+  the core — but that is unproven in both directions. **Needs a real
+  `.iso`/`.cso` to settle.**
+
+### Core starts and exits, or never starts
+
+The required BIOS files are present and hash-verified in both cases, so this is
+not a BIOS problem — most likely the homebrew test ROMs are not in a format these
+cores accept.
+
+- **Atari 5200** (Atari800) — helper starts, then exits. `5200.rom` present.
+- **Intellivision** (Bliss) — helper never starts. `exec.bin` + `grom.bin` present.
+
+### Won't import at all
+
+The core builds and the system plugin loads, but OpenEmu's importer refuses the
+file, so the game never reaches the core.
+
+- **Dreamcast** (reicast) — `.gdi` never imports. The disc parses correctly
+  (verified directly against `OEFile`), the system is enabled, `.gdi`/`.cdi` are
+  registered as document types, and the BIOS is installed. The entire importer
+  path was traced without finding the cause.
+- **Atari Jaguar** (VirtualJaguar) — `.j64` never imports.
+- **Pokémon Mini** (PokeMini) — `.min` never imports.
+- **Watara Supervision** (Potator) — `.sv` never imports.
+
+None of these four shipped in a stable OpenEmu release; their system plugins
+exist only as unused Xcode targets that must be built and injected by hand, and
+their importer integration appears to be incomplete upstream.
+
+### No core built
+
+- **GameCube / Wii** — Dolphin is not a submodule of the OpenEmu repo; it lives
+  at https://github.com/OpenEmu/dolphin and has not been attempted here.
+
+### Never tested (no ROM at hand)
+
+These cores build and install, but no test ROM was available: **3DO** (4DO — also
+needs a BIOS and a real disc image), **Odyssey²** (O2EM — needs BIOS), **Atari
+8-bit** (Atari800), **SG-1000** (CrabEmu), **NeoGeo Pocket**, **PC Engine / PC
+Engine CD**, **PC-FX**, **Virtual Boy**, **WonderSwan**, **Saturn** (Mednafen),
+**Sega CD**, **Sega 32X** (Picodrive), **Nintendo FDS**, plus the alternate cores
+**SNES9x**, **FCEU** and **JollyCV**.
+
+### Everything else
+
+- **Xbox controllers do not work over USB** on macOS. Wired Xbox pads speak
+  Microsoft's proprietary GIP protocol and macOS ships no driver for it, so the
+  system never enumerates them and no application can see them. Use Bluetooth;
+  use the cable for charging.
+- **Input Monitoring must be granted again after every rebuild**, because ad-hoc
+  signing changes the code hash and macOS treats the binary as new.
+- **Do not use "Check for Updates"** — Sparkle will replace a native build with
+  the official Intel release.
 
 ---
 
