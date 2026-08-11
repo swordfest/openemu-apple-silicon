@@ -39,10 +39,11 @@ modern-toolchain strictness issue or a stale build setting.
 | Systems where a test ROM loads and runs | 17 |
 | Systems confirmed *visually* playable | 4 (N64, SNES, Game Boy, GBA) |
 
-17 systems load and run a test ROM, including **Nintendo DS**. Only N64 has been
-confirmed *visually* playable; for the rest, "runs" means the core loads and
-executes — see **Known issues** for exactly what was and was not verified, and
-for the systems that stay black, refuse to import, or have no core yet.
+17 systems load and run a test ROM, including **Nintendo DS**. Four of them —
+N64, SNES, Game Boy and GBA — are confirmed *visually* playable; for the rest,
+"runs" means the core loads and executes, which is not the same thing. See
+**Known issues** for exactly what was and was not verified, and for the systems
+that stay black, refuse to import, or have no core yet.
 
 ---
 
@@ -306,6 +307,13 @@ Engine CD**, **PC-FX**, **Virtual Boy**, **WonderSwan**, **Saturn** (Mednafen),
 
 ## Licensing
 
-Patches are derivative works of their upstream projects and are offered under
-each project's own license (BSD-3-Clause for OpenEmu components; GPL-2.0 or later
-for DeSmuME, reicast, and PPSSPP). See [ATTRIBUTION.md](ATTRIBUTION.md).
+Each patch is a derivative work of the project it modifies and is offered under
+**that project's own license** — BSD-3-Clause for the OpenEmu components,
+GPL-2.0 (or later) for DeSmuME, reicast and PPSSPP. The original material here
+(scripts, docs, workflow) is MIT.
+
+See [LICENSE](LICENSE) for the per-file breakdown and for what you must do if you
+distribute a build, and [ATTRIBUTION.md](ATTRIBUTION.md) for who wrote what.
+
+No ROMs, BIOS images or game assets are included here, and the build scripts
+download none. Users supply their own.

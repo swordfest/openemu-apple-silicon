@@ -1,0 +1,92 @@
+Licensing of this repository
+============================
+
+This repository contains two different kinds of material, and they are licensed
+differently. Nothing here is licensed "all rights reserved" — that would be
+incompatible with the projects this work derives from.
+
+See ATTRIBUTION.md for who wrote the software these patches apply to.
+
+
+1. The patch files (patches/*.patch)
+------------------------------------
+
+Each patch is a derivative work of the project it modifies, and is offered
+under that project's own license — not under a license chosen here:
+
+  patches/01-openemu-sdk-controller-crash.patch
+      derives from OpenEmu-SDK, Copyright (c) 2009 OpenEmu Team
+      -> BSD 3-Clause
+
+  patches/02-nestopia-return-nil.patch
+      derives from Nestopia-Core, Copyright (c) 2018 OpenEmu Team
+      -> BSD 3-Clause
+
+  patches/03-desmume-nds-arm64.patch
+      derives from DeSmuME, Copyright (C) 2007 Tim Seidel,
+      Copyright (C) 2008-2015 DeSmuME team
+      -> GNU General Public License, version 2 or later
+
+  patches/04-reicast-dreamcast-arm64.patch
+      derives from reicast, Copyright (c) reicast team and contributors
+      -> GNU General Public License, version 2
+
+  patches/05-ppsspp-remove-agl.patch
+      derives from PPSSPP, Copyright (c) 2012- PPSSPP Project
+      -> GNU General Public License, version 2 or later
+
+The unified diffs necessarily quote a small amount of surrounding upstream code
+as context (roughly 110 lines in total). That code remains the property of its
+authors under the licenses above. Distributing changes as patches is the normal,
+intended mechanism for these projects.
+
+Full license texts are distributed with each upstream project and are not
+duplicated here, to avoid any suggestion that this repository is the origin of
+that code.
+
+
+2. Original material (scripts/, README.md, ATTRIBUTION.md, INSTALL.txt,
+   .github/)
+-----------------------------------------------------------------------
+
+Copyright (c) 2026 Swordfest
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+3. If you distribute a build made with these scripts
+----------------------------------------------------
+
+A compiled OpenEmu built this way contains GPL-licensed emulator cores
+(DeSmuME, reicast, PPSSPP, Mupen64Plus, Nestopia and others). Under the GPL,
+anyone you give a binary to is entitled to the corresponding source. To satisfy
+that:
+
+  - keep this repository public, and link it from every release, and
+  - keep ATTRIBUTION.md inside the distributed archive.
+
+Label such builds "unofficial". They are not produced or endorsed by the OpenEmu
+project, and its maintainers should not receive support requests for them.
+
+
+4. What is not here
+-------------------
+
+No ROMs, BIOS images, firmware, game assets, or other copyrighted media are
+included in this repository, and none should ever be added to it. The build
+scripts do not download any such material. Users must supply their own.
