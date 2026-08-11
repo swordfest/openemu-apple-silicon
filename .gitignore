@@ -1,0 +1,14 @@
+# Never commit game or firmware data
+*.iso
+*.cso
+*.bin
+*.rom
+*.z64
+*.nds
+*.pbp
+*.gdi
+*.cue
+*.chd
+*.a
+.DS_Store
+build*/

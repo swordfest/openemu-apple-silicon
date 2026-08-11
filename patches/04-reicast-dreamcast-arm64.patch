@@ -1,0 +1,125 @@
+diff --git a/core/build.h b/core/build.h
+index 14f4cd2d..26493b04 100755
+--- a/core/build.h
++++ b/core/build.h
+@@ -182,7 +182,12 @@
+ #endif
+ 
+ //Targets
+-#if defined(TARGET_WIN86)
++// Apple Silicon: detect via the compiler's own macro so a stale TARGET_OSX_X64
++// (inherited from the Xcode project) can't force the x86 code paths.
++#if defined(__APPLE__) && defined(__aarch64__)
++    #define HOST_OS OS_DARWIN
++    #define HOST_CPU CPU_ARM64
++#elif defined(TARGET_WIN86)
+ 	#define HOST_OS OS_WINDOWS
+ 	#define HOST_CPU CPU_X86
+ #elif defined(TARGET_WIN64)
+@@ -221,6 +226,9 @@
+ #elif defined(TARGET_OSX_X64)
+     #define HOST_OS OS_DARWIN
+     #define HOST_CPU CPU_X64
++#elif defined(TARGET_OSX_ARM64)
++    #define HOST_OS OS_DARWIN
++    #define HOST_CPU CPU_ARM64
+ #else
+ 	#error Invalid Target: TARGET_* not defined
+ #endif
+diff --git a/core/deps/libpng/pngpriv.h b/core/deps/libpng/pngpriv.h
+index 7216050d..0e610330 100644
+--- a/core/deps/libpng/pngpriv.h
++++ b/core/deps/libpng/pngpriv.h
+@@ -508,8 +508,11 @@
+     */
+ #  include <float.h>
+ 
+-#  if (defined(__MWERKS__) && defined(macintosh)) || defined(applec) || \
+-    defined(THINK_C) || defined(__SC__) || defined(TARGET_OS_MAC)
++/* !__MACH__ keeps modern macOS out of this Classic Mac OS branch: current SDKs
++ * define TARGET_OS_MAC but have no <fp.h>, so they must use <math.h> below. */
++#  if ((defined(__MWERKS__) && defined(macintosh)) || defined(applec) || \
++    defined(THINK_C) || defined(__SC__) || defined(TARGET_OS_MAC)) && \
++    !defined(__MACH__)
+    /* We need to check that <math.h> hasn't already been included earlier
+     * as it seems it doesn't agree with <fp.h>, yet we should really use
+     * <fp.h> if possible.
+diff --git a/core/hw/sh4/interpr/sh4_opcodes.cpp b/core/hw/sh4/interpr/sh4_opcodes.cpp
+index 3cb3a52f..50194520 100644
+--- a/core/hw/sh4/interpr/sh4_opcodes.cpp
++++ b/core/hw/sh4/interpr/sh4_opcodes.cpp
+@@ -1250,7 +1250,10 @@ INLINE void DYNACALL do_sqw(u32 Dest)
+ }
+ 
+ void DYNACALL do_sqw_mmu(u32 dst) { do_sqw<true>(dst); }
+-#if HOST_CPU != CPU_ARM && HOST_CPU != CPU_ARM64
++// On ARM/ARM64 this is normally supplied in assembly by the JIT backend, so the
++// C++ version is skipped. With the portable recompiler (FEAT_SHREC != DYNAREC_JIT)
++// that assembly isn't built, so we still need this definition.
++#if (HOST_CPU != CPU_ARM && HOST_CPU != CPU_ARM64) || FEAT_SHREC != DYNAREC_JIT
+ //yes, this micro optimization makes a difference
+ extern "C" void DYNACALL do_sqw_nommu_area_3(u32 dst,u8* sqb)
+ {
+diff --git a/core/linux/common.cpp b/core/linux/common.cpp
+index 39e3efd4..7cb107b2 100644
+--- a/core/linux/common.cpp
++++ b/core/linux/common.cpp
+@@ -19,7 +19,9 @@
+ #include <sys/param.h>
+ #include <sys/mman.h>
+ #include <sys/time.h>
+-#if !defined(TARGET_BSD) && !defined(_ANDROID) && !defined(TARGET_IPHONE) && !defined(TARGET_NACL32) && !defined(TARGET_EMSCRIPTEN) && !defined(TARGET_OSX) && !defined(TARGET_OSX_X64)
++// !__APPLE__ covers every Apple target (including TARGET_OSX_ARM64) — sys/personality.h
++// is Linux-only and the per-target list above predates the arm64 target.
++#if !defined(TARGET_BSD) && !defined(_ANDROID) && !defined(TARGET_IPHONE) && !defined(TARGET_NACL32) && !defined(TARGET_EMSCRIPTEN) && !defined(TARGET_OSX) && !defined(TARGET_OSX_X64) && !defined(__APPLE__)
+   #include <sys/personality.h>
+   #include <dlfcn.h>
+ #endif
+diff --git a/core/linux/context.cpp b/core/linux/context.cpp
+index 7c317c40..87370004 100644
+--- a/core/linux/context.cpp
++++ b/core/linux/context.cpp
+@@ -52,7 +52,13 @@ void context_segfault(rei_host_context_t* reictx, void* segfault_ctx, bool to_se
+ 		#error HOST_OS
+ 	#endif
+ #elif HOST_CPU == CPU_ARM64
+-	bicopy(reictx->pc, MCTX(.pc), to_segfault);
++	#if HOST_OS == OS_DARWIN
++		// Apple's arm64 mcontext nests the register state in __ss (and mcontext
++		// itself is a pointer), mirroring the CPU_ARM/OS_DARWIN case above.
++		bicopy(reictx->pc, MCTX(->__ss.__pc), to_segfault);
++	#else
++		bicopy(reictx->pc, MCTX(.pc), to_segfault);
++	#endif
+ #elif HOST_CPU == CPU_X86
+ 	#if defined(__FreeBSD__)
+ 		bicopy(reictx->pc, MCTX(.mc_eip), to_segfault);
+diff --git a/core/linux/posix_vmem.cpp b/core/linux/posix_vmem.cpp
+index 9a573cda..1d81128d 100644
+--- a/core/linux/posix_vmem.cpp
++++ b/core/linux/posix_vmem.cpp
+@@ -13,6 +13,11 @@
+ #include <errno.h>
+ #include <unistd.h>
+ 
++#ifdef __APPLE__
++// sys_icache_invalidate() — used by the arm64 JIT cache flush below.
++#include <libkern/OSCacheControl.h>
++#endif
++
+ #include "hw/mem/_vmem.h"
+ #include "stdclass.h"
+ 
+@@ -230,8 +235,10 @@ static void Arm64_CacheFlush(void* start, void* end) {
+ 		return;
+ 
+ #if HOST_OS == OS_DARWIN
+-	// Header file says this is equivalent to: sys_icache_invalidate(start, end - start);
+-	sys_cache_control(kCacheFunctionPrepareForExecution, start, end - start);
++	// sys_cache_control(kCacheFunctionPrepareForExecution, ...) no longer exists in
++	// modern macOS SDKs; sys_icache_invalidate() is the documented equivalent.
++	// Cast through char* because pointer arithmetic on void* is not allowed.
++	sys_icache_invalidate(start, (char *)end - (char *)start);
+ #else
+ 	// Don't rely on GCC's __clear_cache implementation, as it caches
+ 	// icache/dcache cache line sizes, that can vary between cores on

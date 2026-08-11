@@ -1,0 +1,13 @@
+diff --git a/NESGameCore.mm b/NESGameCore.mm
+index 994f5d3..6c69505 100644
+--- a/NESGameCore.mm
++++ b/NESGameCore.mm
+@@ -499,7 +499,7 @@ static __weak NESGameCore *_current;
+             NSLocalizedRecoverySuggestionErrorKey : errorDescription
+         }];
+ 
+-        return NO;
++        return nil;
+     }
+ 
+     stateStream.seekg(0, std::ios::end);

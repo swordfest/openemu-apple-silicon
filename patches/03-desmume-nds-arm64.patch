@@ -1,0 +1,85 @@
+diff --git a/src/MMU_timing.h b/src/MMU_timing.h
+index 9da0a09..721b19f 100755
+--- a/src/MMU_timing.h
++++ b/src/MMU_timing.h
+@@ -155,8 +155,10 @@ private:
+ 	enum { ASSOCIATIVITY = 1 << ASSOCIATIVESHIFT };
+ 	enum { BLOCKSIZE = 1 << BLOCKSIZESHIFT };
+ 	enum { TAGSHIFT = SIZESHIFT - ASSOCIATIVESHIFT };
+-	enum { TAGMASK = (u32)(~0 << TAGSHIFT) };
+-	enum { BLOCKMASK = ((u32)~0 >> (32 - TAGSHIFT)) & (u32)(~0 << BLOCKSIZESHIFT) };
++	// ~0u, not ~0: left-shifting a negative int is undefined behaviour and is
++	// rejected in constant expressions by modern clang.
++	enum { TAGMASK = (u32)(~0u << TAGSHIFT) };
++	enum { BLOCKMASK = ((u32)~0u >> (32 - TAGSHIFT)) & (u32)(~0u << BLOCKSIZESHIFT) };
+ 	enum { WORDSIZE = sizeof(u32) };
+ 	enum { WORDSPERBLOCK = (1 << BLOCKSIZESHIFT) / WORDSIZE };
+ 	enum { DATAPERWORD = WORDSIZE * ASSOCIATIVITY };
+diff --git a/src/cocoa/cocoa_input.h b/src/cocoa/cocoa_input.h
+index 2e65c81..850598c 100755
+--- a/src/cocoa/cocoa_input.h
++++ b/src/cocoa/cocoa_input.h
+@@ -129,8 +129,10 @@ typedef struct
+ @property (assign) BOOL softwareMicState;
+ @property (assign) NSInteger softwareMicMode;
+ @property (assign) NSInteger micMode;
+-@property (readonly, strong) CoreAudioInput *CAInputDevice;
+-@property (readonly, strong) AudioGenerator *softwareMicSampleGenerator;
++// CoreAudioInput and AudioGenerator are C++ classes, not ObjC objects, so ARC
++// ownership qualifiers (strong/retain) are invalid on them under modern clang.
++@property (readonly, assign) CoreAudioInput *CAInputDevice;
++@property (readonly, assign) AudioGenerator *softwareMicSampleGenerator;
+ @property (assign) AudioSampleBlockGenerator *selectedAudioFileGenerator;
+ @property (assign) NSInteger paddleAdjust;
+ @property (copy) NSString *hardwareMicInfoString;
+diff --git a/src/utils/libfat/directory.cpp b/src/utils/libfat/directory.cpp
+index 765d7ae..031ef74 100755
+--- a/src/utils/libfat/directory.cpp
++++ b/src/utils/libfat/directory.cpp
+@@ -139,7 +139,9 @@ static size_t _FAT_directory_mbstoucs2 (ucs2_t* dst, const char* src, size_t len
+ 	int bytes;
+ 	size_t count = 0;
+ 
+-	while (count < len-1 && src != '\0') {
++	// *src, not src: the original compared the pointer itself against '\0'.
++	// Equivalent in practice since mbrtowc() returns 0 at the terminator below.
++	while (count < len-1 && *src != '\0') {
+ 		bytes = mbrtowc (&tempChar, src, MB_CUR_MAX, &ps);
+ 		if (bytes > 0) {
+ 			*dst = (ucs2_t)tempChar;
+diff --git a/src/wifi.cpp b/src/wifi.cpp
+index 299cebc..55b1b12 100755
+--- a/src/wifi.cpp
++++ b/src/wifi.cpp
+@@ -314,9 +314,11 @@ WifiComInterface* wifiCom;
+ 
+ #if (WIFI_LOGGING_LEVEL >= 1)
+ 	#if WIFI_LOG_USE_LOGC
+-		#define WIFI_LOG(level, ...) if(level <= WIFI_LOGGING_LEVEL) LOGC(8, "WIFI: "__VA_ARGS__);
++		/* Space before __VA_ARGS__ is required: without it C++11 parses
++		 * "WIFI: "__VA_ARGS__ as a user-defined string literal. */
++		#define WIFI_LOG(level, ...) if(level <= WIFI_LOGGING_LEVEL) LOGC(8, "WIFI: " __VA_ARGS__);
+ 	#else
+-		#define WIFI_LOG(level, ...) if(level <= WIFI_LOGGING_LEVEL) printf("WIFI: "__VA_ARGS__);
++		#define WIFI_LOG(level, ...) if(level <= WIFI_LOGGING_LEVEL) printf("WIFI: " __VA_ARGS__);
+ 	#endif
+ #else
+ #define WIFI_LOG(level, ...) {}
+@@ -329,7 +331,7 @@ WifiComInterface* wifiCom;
+  *******************************************************************************/
+ 
+ // TODO: find the right value
+-// GBAtek says it is 10µs, however that value seems too small
++// GBAtek says it is 10ï¿½s, however that value seems too small
+ // (MP host sends floods of data frames, clients can't keep up)
+ // 100 would make more sense since CMDCOUNT is set to 166
+ // that would be 16.6ms ~= 1 frame
+@@ -1283,7 +1285,7 @@ void WIFI_write16(u32 address, u16 val)
+ 			wifiMac.eCountEnable = BIT0(val);
+ 			break;
+ 		case REG_WIFI_EXTRACOUNT:
+-			WIFI_LOG(3, "EXTRACOUNT=%i (%i µs)\n", val, val*WIFI_CMDCOUNT_SLICE);
++			WIFI_LOG(3, "EXTRACOUNT=%i (%i ï¿½s)\n", val, val*WIFI_CMDCOUNT_SLICE);
+ 			wifiMac.eCount = (u32)val * WIFI_CMDCOUNT_SLICE;
+ 			break;
+ 		case REG_WIFI_LISTENINT:

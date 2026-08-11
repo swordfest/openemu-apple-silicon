@@ -1,0 +1,12 @@
+diff --git a/PPSSPP.xcodeproj/project.pbxproj b/PPSSPP.xcodeproj/project.pbxproj
+index 341c14a..e45b926 100644
+--- a/PPSSPP.xcodeproj/project.pbxproj
++++ b/PPSSPP.xcodeproj/project.pbxproj
+@@ -4122,7 +4122,6 @@
+ 				8CA1540E17C4138E0003002D /* libxxhash.a in Frameworks */,
+ 				8CB2173717C6566B00CE82F3 /* CoreVideo.framework in Frameworks */,
+ 				8CB2173B17C6569400CE82F3 /* VideoDecodeAcceleration.framework in Frameworks */,
+-				8CB2173917C6567B00CE82F3 /* AGL.framework in Frameworks */,
+ 				8C74454E1786DB1E0008BE6A /* OpenGL.framework in Frameworks */,
+ 				8CAFC1231785B6C400647A96 /* OpenEmuBase.framework in Frameworks */,
+ 			);

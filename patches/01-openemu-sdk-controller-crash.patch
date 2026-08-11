@@ -1,0 +1,34 @@
+diff --git a/OpenEmuSystem/OEDeviceManager.m b/OpenEmuSystem/OEDeviceManager.m
+index 9dffffa..c1920e2 100644
+--- a/OpenEmuSystem/OEDeviceManager.m
++++ b/OpenEmuSystem/OEDeviceManager.m
+@@ -483,7 +483,15 @@ static const void * kOEBluetoothDevicePairSyncStyleKey = &kOEBluetoothDevicePair
+         [_keyboardHandlers addObject:handler];
+         [self didChangeValueForKey:@"keyboardDeviceHandlers"];
+     } else {
+-        NSAssert([[handler controllerDescription] numberOfControls] > 0, @"Handler %@ does not have any controls.", handler);
++        // A HID device can legitimately report zero controls when this process
++        // has not been granted the Input Monitoring privacy permission (macOS
++        // hides the device's elements). Aborting via NSAssert here crashes the
++        // app (and the OpenEmuHelperApp core process) on controller connect, so
++        // skip the handler gracefully instead.
++        if ([[handler controllerDescription] numberOfControls] == 0) {
++            NSLog(@"OEDeviceManager: ignoring handler %@ with no controls (Input Monitoring permission not granted?)", handler);
++            return;
++        }
+         [handler setDeviceIdentifier:++_lastAttributedDeviceIdentifier];
+         [self willChangeValueForKey:@"controllerDeviceHandlers"];
+         [_deviceHandlers addObject:handler];
+diff --git a/OpenEmuSystem/OESwitchProControllerHIDDeviceHandler.m b/OpenEmuSystem/OESwitchProControllerHIDDeviceHandler.m
+index a00e17c..d77bb71 100644
+--- a/OpenEmuSystem/OESwitchProControllerHIDDeviceHandler.m
++++ b/OpenEmuSystem/OESwitchProControllerHIDDeviceHandler.m
+@@ -736,7 +736,7 @@ static CGFloat OEHACScaleValueWithCalibration(
+             return NO;
+         }
+         const OEHACUSBAcknowledgmentOutputReport *response = respData.bytes;
+-        if (response->reportID != OEHACInputReportIDUSBSubcommandReply) {
++        if ((OEHACInputReportID)response->reportID != OEHACInputReportIDUSBSubcommandReply) {
+             NSLog(@"[dev %p] Invalid ACK from controller (USB subcommand %02X)", self, cmdid);
+             return NO;
+         }
