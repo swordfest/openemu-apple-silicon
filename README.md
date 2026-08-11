@@ -157,6 +157,49 @@ hash and macOS treats it as a new binary.
 
 ---
 
+## Building your own unofficial release
+
+One command does everything — clone upstream, patch, build, package:
+
+```bash
+./scripts/bootstrap.sh ./build essential   # 8 cores, quicker
+./scripts/bootstrap.sh ./build all         # 26 cores, adds ~3 GB of PPSSPP submodules
+```
+
+Output: `build/dist/OpenEmu-<version>-arm64-unofficial/` containing `OpenEmu.app`,
+a `Cores/` folder, `INSTALL.txt` and `ATTRIBUTION.md`. Roughly 132 MB with all
+cores.
+
+### Automated releases
+
+`.github/workflows/release.yml` builds the same thing on GitHub's Apple Silicon
+runners (`macos-15`). Run it from the Actions tab, or push a tag:
+
+```bash
+git tag v1 && git push origin v1
+```
+
+That publishes a GitHub Release with a `.zip` and its SHA-256.
+
+### Please keep "unofficial" in the name
+
+The packaged folder is named `OpenEmu-<version>-arm64-unofficial` deliberately.
+These builds are not produced or endorsed by the OpenEmu project, and their team
+should not receive bug reports for them. Keep the naming, keep `INSTALL.txt` and
+`ATTRIBUTION.md` in the archive, and link back to the upstream projects.
+
+### Distribution obligations
+
+- **GPL.** DeSmuME, reicast, PPSSPP, Mupen64Plus, Nestopia and others are
+  GPL-licensed. If you hand someone a binary, they are entitled to the
+  corresponding source. The practical way to satisfy this is to keep the
+  repository containing these patches **public** and link it from every release.
+  A private patch repository plus public binaries does not comply.
+- **Signing.** Ad-hoc signing means recipients must clear the quarantine flag
+  manually. For a frictionless install you need an Apple Developer ID
+  (99 USD/year) and notarisation.
+- **Never ship ROMs or BIOS files.**
+
 ## Status / known gaps
 
 - **PSP** — builds, installs, initialises, and reaches its frame loop, but has

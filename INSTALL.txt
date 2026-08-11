@@ -1,0 +1,83 @@
+OpenEmu — UNOFFICIAL native Apple Silicon build
+===============================================
+
+This is NOT an official OpenEmu release. It is a community build of the
+upstream OpenEmu sources, compiled for arm64, with a small set of
+compatibility patches. Do not report issues from this build to the OpenEmu
+project — they did not produce it.
+
+OpenEmu and its cores are the work of their respective authors. See
+ATTRIBUTION.md, included alongside this file.
+
+Requirements: a Mac with Apple Silicon (M1 or newer), macOS 10.14+.
+
+
+1. Install the app
+------------------
+Drag OpenEmu.app into /Applications.
+
+This build is ad-hoc signed, not signed with an Apple Developer ID, so macOS
+will refuse to open it until you clear the quarantine flag:
+
+    xattr -dr com.apple.quarantine /Applications/OpenEmu.app
+
+(Run that once, in Terminal. Without it you will see "OpenEmu is damaged" or
+a Gatekeeper block. This is expected for unsigned community builds.)
+
+
+2. Install the cores
+--------------------
+Copy the contents of the Cores folder into:
+
+    ~/Library/Application Support/OpenEmu/Cores/
+
+For example:
+
+    mkdir -p ~/Library/Application\ Support/OpenEmu/Cores
+    cp -R Cores/*.oecoreplugin ~/Library/Application\ Support/OpenEmu/Cores/
+
+
+3. Grant Input Monitoring (needed for controllers)
+--------------------------------------------------
+System Settings -> Privacy & Security -> Input Monitoring -> enable OpenEmu.
+If it is not listed, add /Applications/OpenEmu.app with the "+" button.
+
+Then quit OpenEmu completely and reopen it.
+
+Without this permission macOS hides controller inputs from the app. (This
+build includes a patch so that a missing permission no longer crashes the
+app — on stock builds it does.)
+
+
+4. Do not use "Check for Updates"
+---------------------------------
+Auto-update would replace this native build with the official Intel release,
+which runs under Rosetta and reintroduces the controller crash.
+
+
+Controllers
+-----------
+Xbox controllers work over Bluetooth. They do NOT work over USB on macOS:
+wired Xbox pads use Microsoft's proprietary GIP protocol, for which macOS has
+no driver, so no application can see them. Use Bluetooth; use the cable for
+charging only.
+
+
+BIOS and games
+--------------
+None are included, and none will be. Some systems (PlayStation, Atari 5200,
+Atari Lynx, Intellivision, Dreamcast) require their own BIOS files placed in:
+
+    ~/Library/Application Support/OpenEmu/BIOS/
+
+Provide your own games and BIOS files.
+
+
+Source code
+-----------
+Several cores in this build are licensed under the GNU General Public
+License (DeSmuME, reicast, PPSSPP, Mupen64Plus, Nestopia and others). If you
+received a binary of this build, you are entitled to the corresponding
+source. The upstream sources are at https://github.com/OpenEmu and the
+projects listed in ATTRIBUTION.md; every modification made for this build is
+published as patch files in the repository this build came from.
